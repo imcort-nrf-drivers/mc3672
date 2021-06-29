@@ -47,6 +47,8 @@ typedef enum
 }   MC36XX_cwake_sr_t;
 
 bool mc3672_begin(void);
+void mc3672_sleep(void);
+
 int16_t mc3672_readXAccel(void);
 int16_t mc3672_readYAccel(void);
 int16_t mc3672_readZAccel(void);

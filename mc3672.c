@@ -11,12 +11,9 @@
 #define MC3672_I2C_ADDR        (0x4c)
 
 //Default settings. This settings will be used in _begin();
-#define MC3672_CFG_MODE_DEFAULT                 MC3672_MODE_STANDBY
-#define MC3672_CFG_SAMPLE_RATE_CWAKE_DEFAULT    MC3672_CWAKE_SR_400Hz
-#define MC3672_CFG_SAMPLE_RATE_SNIFF_DEFAULT    MC3672_SNIFF_SR_105Hz//MC3672_SNIFF_SR_DEFAULT_7Hz
-#define MC3672_CFG_RANGE_DEFAULT                MC3672_RANGE_8G
-#define MC3672_CFG_RESOLUTION_DEFAULT           MC3672_RESOLUTION_14BIT
-#define MC3672_CFG_ORIENTATION_MAP_DEFAULT      ORIENTATION_TOP_RIGHT_UP
+#define MC3672_CFG_SAMPLE_RATE_CWAKE_DEFAULT    MC36XX_CWAKE_SR_400Hz
+#define MC3672_CFG_RANGE_DEFAULT                MC36XX_RANGE_8G
+#define MC3672_CFG_RESOLUTION_DEFAULT           MC36XX_RESOLUTION_14BIT
 
 //Internal settings. Not accessibe out of this .c
 /******************************************************************************
@@ -65,6 +62,8 @@
 #define MC3672_REG_WAF_LOT          (0x3F)
 
 #define MC3672_NULL_ADDR            (0)
+
+static bool mc3672_is_initialized = false;
 
 // Read 8-bit from register
 static uint8_t mc3672_readRegister8(uint8_t reg)
@@ -177,41 +176,49 @@ void mc3672_setSampleRate(MC36XX_cwake_sr_t sample_rate)
 }
 
 // Begin
-bool mc3672_begin()
+bool mc3672_begin(void)
 {
-    //Communication init.
-    iic_init();
-    
-    //Sensor reset.
-	mc3672_reset();
-    mc3672_setMode(MC36XX_MODE_STANDBY);
-    
-//    //SetWakeAGAIN
-//    MC36XXSetWakeAGAIN(MC36XX_GAIN_1X);
-//    //SetSniffAGAIN
-//    MC36XXSetSniffAGAIN(MC36XX_GAIN_1X);
-
-    /* Check I2C connection */
-    uint8_t id = mc3672_readRegister8(MC3672_REG_PROD); //Not shown in datasheet.
-    if (id != 0x71)
+    if(!mc3672_is_initialized)
     {
-        /* No MC36XX detected ... return false */
-        Debug("No MC36XX detected!");
-        // Serial.println(id, HEX);
-        return false;
+        //Communication init.
+        iic_init();
+        
+        //Sensor reset.
+        mc3672_reset();
+        mc3672_setMode(MC36XX_MODE_STANDBY);
+
+        /* Check I2C connection */
+        uint8_t id = mc3672_readRegister8(MC3672_REG_PROD); //Not shown in datasheet.
+        if (id != 0x71)
+        {
+            /* No MC36XX detected ... return false */
+            Debug("No MC36XX detected!");
+            // Serial.println(id, HEX);
+            return false;
+        }
+        
+        //Range: 8g
+        mc3672_setRange(MC3672_CFG_RANGE_DEFAULT);
+        //Resolution: 14bit
+        mc3672_setResolution(MC3672_CFG_RESOLUTION_DEFAULT);
+        //Sampling Rate: 50Hz by default
+        mc3672_setSampleRate(MC3672_CFG_SAMPLE_RATE_CWAKE_DEFAULT);
+        
+        mc3672_is_initialized = true;
+    
     }
 
-    //Range: 8g
-    mc3672_setRange(MC36XX_RANGE_8G);
-    //Resolution: 14bit
-    mc3672_setResolution(MC36XX_RESOLUTION_14BIT);
-    //Sampling Rate: 50Hz by default
-    mc3672_setSampleRate(MC36XX_CWAKE_SR_105Hz);
     //Mode: Active
     mc3672_setMode(MC36XX_MODE_CWAKE);
     
     return true;
 
+}
+
+void mc3672_sleep(void)
+{
+    //Set mode as Sleep
+    mc3672_setMode(MC36XX_MODE_STANDBY);
 }
 
 int16_t mc3672_readXAccel(void)
