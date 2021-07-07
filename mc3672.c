@@ -11,7 +11,7 @@
 #define MC3672_I2C_ADDR        (0x4c)
 
 //Default settings. This settings will be used in _begin();
-#define MC3672_CFG_SAMPLE_RATE_CWAKE_DEFAULT    MC36XX_CWAKE_SR_400Hz
+#define MC3672_CFG_SAMPLE_RATE_CWAKE_DEFAULT    MC36XX_CWAKE_SR_600Hz
 #define MC3672_CFG_RANGE_DEFAULT                MC36XX_RANGE_8G
 #define MC3672_CFG_RESOLUTION_DEFAULT           MC36XX_RESOLUTION_14BIT
 
